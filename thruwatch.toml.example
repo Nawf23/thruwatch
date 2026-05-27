@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────
+#  ThruWatch Configuration
+#  Copy this file to thruwatch.toml and fill in your values.
+# ─────────────────────────────────────────────
+
+[network]
+# The Thru Alphanet RPC endpoint
+rpc_url = "https://grpc.alphanet.thruput.org"
+
+# How often to poll the network for stats (seconds)
+poll_interval = 30
+
+# How many blocks of drop triggers a reset alert
+# (e.g. if height drops by more than 100, it's a reset)
+reset_threshold = 100
+
+
+[wallet]
+# Path to your private key file (used by the thru CLI)
+key_file = "~/.thru/default.key"
+
+# Your Thru public address (derived from the key above)
+# Run `thru account info` to find this
+address = "YOUR_THRU_ADDRESS_HERE"
+
+# Amount of THRU to request from the faucet on recovery
+faucet_amount = 100
+
+
+[recovery]
+# Automatically trigger recovery after a confirmed reset
+auto_recover = true
+
+# Wait this many seconds after detecting a reset before recovering
+# (gives the network time to stabilise)
+recovery_delay = 60
+
+# .bin contract files to automatically redeploy after recovery
+# List as many as you need
+contracts = [
+  # "path/to/your/program.bin",
+]
+
+
+[notifications]
+# Discord webhook URL — paste the full URL from your Discord channel settings
+# Leave empty to disable Discord notifications
+discord_webhook = ""
+
+# Notification events (set to true/false to enable/disable each)
+notify_on_reset_detected = true
+notify_on_recovery_complete = true
+notify_on_network_unhealthy = true
+
+
+[dashboard]
+# Port for the ThruWatch API + dashboard server
+port = 8000
+
+# Allow the dashboard to be accessed from other machines on your network
+# Set to "0.0.0.0" for public access, "127.0.0.1" for local only
+host = "127.0.0.1"

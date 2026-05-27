@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThruWatch — Alphanet Monitor</title>
+  <style>
+    :root {
+      --bg:       #0a0c10;
+      --surface:  #111520;
+      --border:   #1e2535;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --green:    #22c55e;
+      --yellow:   #eab308;
+      --red:      #ef4444;
+      --blue:     #3b82f6;
+      --accent:   #6366f1;
+      --radius:   10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ──────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .thruscan-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+    .thruscan-link:hover { border-color: var(--accent); color: var(--text); }
+
+    .last-updated {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: grid;
+      gap: 20px;
+    }
+
+    /* ── Cards ───────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── Status Row ──────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
+    .stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── Health Indicator ────────────────────── */
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .health-pill .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .health-green { background: rgba(34,197,94,0.12); color: var(--green); }
+    .health-green .dot { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+    .health-yellow { background: rgba(234,179,8,0.12); color: var(--yellow); }
+    .health-yellow .dot { background: var(--yellow); }
+    .health-red { background: rgba(239,68,68,0.12); color: var(--red); }
+    .health-red .dot { background: var(--red); }
+
+    /* ── Sparkline ───────────────────────────── */
+    #sparkline-canvas {
+      width: 100%;
+      height: 70px;
+      display: block;
+    }
+
+    /* ── Resets Table ────────────────────────── */
+    .reset-count-badge {
+      display: inline-block;
+      background: rgba(239,68,68,0.12);
+      color: var(--red);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(30,37,53,0.6);
+      font-variant-numeric: tabular-nums;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .reset-number {
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    .ongoing-badge {
+      display: inline-block;
+      background: rgba(239,68,68,0.12);
+      color: var(--red);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ── Two-column layout ───────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .two-col { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── Leaderboard ─────────────────────────── */
+    .rank {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      width: 32px;
+    }
+    .rank-1 { color: #fbbf24; }
+    .rank-2 { color: #94a3b8; }
+    .rank-3 { color: #b45309; }
+
+    .address-cell {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+    }
+
+    .address-link {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .address-link:hover { text-decoration: underline; }
+
+    /* ── Empty state ─────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 28px; margin-bottom: 10px; }
+
+    /* ── Footer ──────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 28px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 12px;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* ── Loader ──────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, #252d3d 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      height: 20px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot" id="health-dot"></div>
+    ThruWatch
+    <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:4px">Alphanet Monitor</span>
+  </div>
+  <div class="header-right">
+    <a href="https://thruscan.net" target="_blank" class="thruscan-link">
+      🔍 ThruScan by <strong style="margin-left:4px">@pgreyy</strong>
+    </a>
+    <span class="last-updated" id="last-updated">Loading...</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Status Row -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:0">Network Status</div>
+      <div id="health-pill">
+        <span class="health-pill health-yellow"><span class="dot"></span>Connecting...</span>
+      </div>
+    </div>
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat">
+        <div class="stat-label">Block Height</div>
+        <div class="stat-value" id="stat-height">—</div>
+        <div class="stat-sub">current head</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">RPC Latency</div>
+        <div class="stat-value" id="stat-latency">—</div>
+        <div class="stat-sub">milliseconds</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Est. TPS</div>
+        <div class="stat-value" id="stat-tps">—</div>
+        <div class="stat-sub">transactions/sec</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Avg Block Time</div>
+        <div class="stat-value" id="stat-blocktime">—</div>
+        <div class="stat-sub">milliseconds</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total Resets</div>
+        <div class="stat-value" id="stat-resets" style="color:var(--red)">—</div>
+        <div class="stat-sub">since ThruWatch started</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Faucet (24h)</div>
+        <div class="stat-value" id="stat-faucet">—</div>
+        <div class="stat-sub">calls today</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sparkline -->
+  <div class="card">
+    <div class="card-title">Block Height History</div>
+    <canvas id="sparkline-canvas"></canvas>
+  </div>
+
+  <!-- Two column: Resets + Leaderboard -->
+  <div class="two-col">
+
+    <!-- Reset History -->
+    <div class="card">
+      <div class="card-title">
+        Reset History
+        <span class="reset-count-badge" id="reset-badge">0</span>
+      </div>
+      <div id="resets-container">
+        <div class="empty"><div class="empty-icon">🟢</div>No resets recorded yet</div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="card">
+      <div class="card-title">Most Active Wallets</div>
+      <div id="leaderboard-container">
+        <div class="empty"><div class="empty-icon">📊</div>Collecting data...</div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  Built with ❤️ for the Thru community &nbsp;·&nbsp;
+  Account explorer: <a href="https://thruscan.net" target="_blank">ThruScan</a> by <a href="https://x.com/pgreyy" target="_blank">@pgreyy</a>
+  &nbsp;·&nbsp;
+  <a href="https://thru.org" target="_blank">thru.org</a>
+  &nbsp;·&nbsp;
+  <a href="https://scan.thru.org" target="_blank">Official Explorer</a>
+</footer>
+
+<script>
+  const API = '';  // same origin — change to 'http://localhost:8000' if running separately
+
+  // ── Fetch helpers ───────────────────────────────────────────────────────
+  async function fetchJSON(path) {
+    try {
+      const r = await fetch(API + path);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } catch (e) {
+      console.warn('Fetch failed:', path, e.message);
+      return null;
+    }
+  }
+
+  function timeAgo(ts) {
+    const diff = Math.floor(Date.now() / 1000) - ts;
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    return `${Math.floor(diff/3600)}h ago`;
+  }
+
+  function fmt(n, decimals=0) {
+    if (n == null) return '—';
+    return Number(n).toLocaleString(undefined, { maximumFractionDigits: decimals });
+  }
+
+  // ── Status update ───────────────────────────────────────────────────────
+  async function updateStatus() {
+    const data = await fetchJSON('/api/status');
+    if (!data) return;
+
+    // Health pill
+    const pill = document.getElementById('health-pill');
+    const dot = document.getElementById('health-dot');
+    const colorMap = { green: '#22c55e', yellow: '#eab308', red: '#ef4444' };
+    pill.innerHTML = `<span class="health-pill health-${data.status}"><span class="dot"></span>${data.label}</span>`;
+    dot.style.background = colorMap[data.status] || '#64748b';
+    dot.style.boxShadow = `0 0 8px ${colorMap[data.status] || '#64748b'}`;
+
+    // Stats
+    document.getElementById('stat-height').textContent = fmt(data.block_height);
+    document.getElementById('stat-latency').textContent = data.rpc_latency_ms != null ? `${data.rpc_latency_ms}ms` : '—';
+    document.getElementById('stat-tps').textContent = fmt(data.tps, 1);
+    document.getElementById('stat-blocktime').textContent = data.avg_block_time_ms != null ? `${data.avg_block_time_ms}ms` : '—';
+    document.getElementById('stat-resets').textContent = fmt(data.reset_count);
+
+    if (data.last_updated) {
+      document.getElementById('last-updated').textContent = `Updated ${timeAgo(data.last_updated)}`;
+    }
+  }
+
+  async function updateFaucet() {
+    const data = await fetchJSON('/api/faucet');
+    if (!data) return;
+    document.getElementById('stat-faucet').textContent = fmt(data.calls_last_24h);
+  }
+
+  // ── Reset history ───────────────────────────────────────────────────────
+  async function updateResets() {
+    const data = await fetchJSON('/api/resets');
+    if (!data) return;
+
+    document.getElementById('reset-badge').textContent = data.total;
+
+    const container = document.getElementById('resets-container');
+    if (!data.resets || data.resets.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div>No resets recorded yet — network has been stable!</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Detected</th>
+            <th>Prev Height</th>
+            <th>Downtime</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.resets.map(r => `
+            <tr>
+              <td class="reset-number">#${r.reset_number}</td>
+              <td>${r.detected_at_human || '—'}</td>
+              <td>${fmt(r.prev_block_height)}</td>
+              <td>${r.resolved_at
+                ? `<span style="color:var(--muted)">${r.downtime_human}</span>`
+                : `<span class="ongoing-badge">ongoing</span>`
+              }</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // ── Leaderboard ─────────────────────────────────────────────────────────
+  async function updateLeaderboard() {
+    const data = await fetchJSON('/api/leaderboard');
+    if (!data) return;
+
+    const container = document.getElementById('leaderboard-container');
+    if (!data.leaderboard || data.leaderboard.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Collecting wallet activity data...</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Address</th>
+            <th>Txns</th>
+            <th>Programs</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.leaderboard.map((e, i) => `
+            <tr>
+              <td class="rank rank-${i+1}">${i+1}</td>
+              <td class="address-cell">
+                <a href="https://thruscan.net/address/${e.address}" target="_blank" class="address-link">
+                  ${e.address_short || e.address}
+                </a>
+              </td>
+              <td>${fmt(e.tx_count)}</td>
+              <td>${fmt(e.programs_deployed)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // ── Sparkline ────────────────────────────────────────────────────────────
+  async function updateSparkline() {
+    const data = await fetchJSON('/api/sparkline');
+    if (!data || !data.points) return;
+
+    const canvas = document.getElementById('sparkline-canvas');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const W = rect.width;
+    const H = rect.height;
+    const pts = data.points.filter(p => p.height != null);
+
+    if (pts.length < 2) {
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Collecting data...', W / 2, H / 2);
+      return;
+    }
+
+    const minH = Math.min(...pts.map(p => p.height));
+    const maxH = Math.max(...pts.map(p => p.height));
+    const range = maxH - minH || 1;
+
+    const xScale = W / (pts.length - 1);
+    const yScale = (H - 20) / range;
+
+    const toX = i => i * xScale;
+    const toY = h => H - 10 - (h - minH) * yScale;
+
+    // Draw reset drops in red
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i].height < pts[i-1].height - 100) {
+        ctx.beginPath();
+        ctx.moveTo(toX(i), 0);
+        ctx.lineTo(toX(i), H);
+        ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+
+    // Draw gradient fill
+    const gradient = ctx.createLinearGradient(0, 0, 0, H);
+    gradient.addColorStop(0, 'rgba(99,102,241,0.3)');
+    gradient.addColorStop(1, 'rgba(99,102,241,0.0)');
+    ctx.beginPath();
+    ctx.moveTo(toX(0), toY(pts[0].height));
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(toX(i), toY(pts[i].height));
+    }
+    ctx.lineTo(toX(pts.length - 1), H);
+    ctx.lineTo(toX(0), H);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Draw line
+    ctx.beginPath();
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.moveTo(toX(0), toY(pts[0].height));
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(toX(i), toY(pts[i].height));
+    }
+    ctx.stroke();
+  }
+
+  // ── Init & refresh loop ─────────────────────────────────────────────────
+  async function refreshAll() {
+    await Promise.all([
+      updateStatus(),
+      updateFaucet(),
+      updateResets(),
+      updateLeaderboard(),
+      updateSparkline(),
+    ]);
+  }
+
+  // Initial load + auto-refresh every 30s
+  refreshAll();
+  setInterval(refreshAll, 30_000);
+
+  // Redraw sparkline on resize
+  window.addEventListener('resize', updateSparkline);
+</script>
+
+</body>
+</html>
