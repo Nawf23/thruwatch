@@ -5,11 +5,14 @@ Serves the dashboard HTML directly from /
 """
 
 import time
+import httpx
 from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+THRU_REST = "https://rest.alphanet.thruput.org"
 
 from core.db import (
     get_latest_snapshot,
@@ -136,6 +139,40 @@ async def sparkline(points: int = 60):
             for s in snapshots
         ]
     }
+
+
+# ─── Account Lookup (proxy to Thru REST API) ─────────────────────────────────
+
+@app.get("/api/account/{address}")
+async def account_info(address: str):
+    """
+    Proxy account lookup to the Thru REST API.
+    Lets the frontend fetch account data without CORS issues on older browsers.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{THRU_REST}/v1/accounts/{address}",
+                timeout=8,
+            )
+        if resp.status_code == 200:
+            return resp.json()
+        return JSONResponse({"error": f"Account not found (HTTP {resp.status_code})"}, status_code=resp.status_code)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=503)
+
+
+@app.get("/api/height")
+async def block_height():
+    """Proxy the Thru REST block height endpoint."""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{THRU_REST}/v1/height", timeout=8)
+        if resp.status_code == 200:
+            return resp.json()
+        return JSONResponse({"error": "Could not fetch height"}, status_code=502)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=503)
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────

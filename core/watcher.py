@@ -33,59 +33,43 @@ console = Console()
 
 # ─── RPC Health Check ────────────────────────────────────────────────────────
 
+THRU_REST_URL = "https://rest.alphanet.thruput.org"
+
+
 def ping_rpc(rpc_url: str) -> tuple[bool, Optional[int], Optional[int]]:
     """
-    Ping the Thru RPC endpoint.
+    Poll the Thru REST API for current block height.
     Returns: (is_healthy, block_height, latency_ms)
 
-    The Thru RPC is gRPC-based. We attempt an HTTP/2 check on the endpoint.
-    If a REST-compatible status/health endpoint is available, use that.
-    Falls back to a basic TCP-level connectivity check.
-
-    NOTE: When Thru publishes their proto definitions, replace this with a
-    proper gRPC stub call (e.g. get_latest_block_height).
+    Uses the official REST endpoint: GET https://rest.alphanet.thruput.org/v1/height
+    Response: { finalized: str, clusterExecuted: str, locallyExecuted: str }
     """
     start = time.monotonic()
     try:
-        # Attempt 1: Try a known REST health endpoint (adjust path as Thru exposes more)
-        resp = httpx.get(f"{rpc_url}/health", timeout=8, follow_redirects=True)
+        resp = httpx.get(f"{THRU_REST_URL}/v1/height", timeout=8)
         latency_ms = int((time.monotonic() - start) * 1000)
 
-        if resp.status_code < 500:
-            # Try to parse block height from response if available
-            try:
-                data = resp.json()
-                height = data.get("block_height") or data.get("height") or data.get("latest_block")
-            except Exception:
-                height = None
+        if resp.status_code == 200:
+            data = resp.json()
+            # Use finalized height as the canonical block height
+            raw = data.get("finalized") or data.get("clusterExecuted") or data.get("locallyExecuted")
+            height = int(raw) if raw else None
             return True, height, latency_ms
 
-    except httpx.ConnectError:
-        pass
+        # Non-200 but reachable — degraded but not down
+        return True, None, int((time.monotonic() - start) * 1000)
+
     except httpx.TimeoutException:
         latency_ms = int((time.monotonic() - start) * 1000)
-        # Timeout might mean the network is congested, not down
-        # (the famous "upstream request timeout" false alarm from the docs)
+        # Timeout = congestion, not necessarily down (known Alphanet behaviour)
         return True, None, latency_ms
+
+    except (httpx.ConnectError, httpx.NetworkError):
+        return False, None, int((time.monotonic() - start) * 1000)
+
     except Exception as e:
-        console.print(f"[yellow][Watcher] RPC ping error: {e}[/yellow]")
-
-    # Attempt 2: Plain TCP connectivity check
-    try:
-        import socket
-        from urllib.parse import urlparse
-        parsed = urlparse(rpc_url)
-        host = parsed.hostname
-        port = parsed.port or (443 if parsed.scheme == "https" else 80)
-        sock = socket.create_connection((host, port), timeout=5)
-        sock.close()
-        latency_ms = int((time.monotonic() - start) * 1000)
-        return True, None, latency_ms
-    except Exception:
-        pass
-
-    latency_ms = int((time.monotonic() - start) * 1000)
-    return False, None, latency_ms
+        console.print(f"[yellow][Watcher] Poll error: {e}[/yellow]")
+        return False, None, int((time.monotonic() - start) * 1000)
 
 
 # ─── Watcher State ───────────────────────────────────────────────────────────

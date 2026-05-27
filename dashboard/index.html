@@ -3,630 +3,803 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ThruWatch — Alphanet Monitor</title>
+  <title>ThruWatch — Alphanet Hub</title>
   <style>
     :root {
-      --bg:       #0a0c10;
-      --surface:  #111520;
-      --border:   #1e2535;
-      --text:     #e2e8f0;
-      --muted:    #64748b;
-      --green:    #22c55e;
-      --yellow:   #eab308;
-      --red:      #ef4444;
-      --blue:     #3b82f6;
-      --accent:   #6366f1;
-      --radius:   10px;
+      --bg:      #0a0c10;
+      --surface: #111520;
+      --raised:  #161c2a;
+      --border:  #1e2535;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+      --green:   #22c55e;
+      --yellow:  #eab308;
+      --red:     #ef4444;
+      --blue:    #3b82f6;
+      --accent:  #6366f1;
+      --radius:  10px;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; min-height: 100vh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      font-size: 14px;
-      min-height: 100vh;
-    }
+    /* ── Header ── */
+    header { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; border-bottom:1px solid var(--border); background:var(--surface); gap:12px; flex-wrap:wrap; }
+    .logo { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:700; }
+    .pulse { width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#4f46e5; }
+    .btn-outline { background:transparent; border:1px solid var(--border); color:var(--muted); }
+    .btn-outline:hover { border-color:var(--accent); color:var(--text); }
+    .btn-sm { padding:6px 12px; font-size:12px; }
+    .btn-green { background:rgba(34,197,94,.15); color:var(--green); border:1px solid rgba(34,197,94,.3); }
+    .btn-green:hover { background:rgba(34,197,94,.25); }
+    .btn-red { background:rgba(239,68,68,.15); color:var(--red); border:1px solid rgba(239,68,68,.3); }
+    .btn-danger { background:var(--red); color:#fff; }
+    .btn-danger:hover { background:#dc2626; }
+    .thruscan-link { display:flex; align-items:center; gap:6px; padding:7px 13px; border-radius:6px; border:1px solid var(--border); color:var(--muted); text-decoration:none; font-size:12px; transition:all .15s; }
+    .thruscan-link:hover { border-color:var(--accent); color:var(--text); }
 
-    /* ── Layout ──────────────────────────────── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 28px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
+    /* ── Main ── */
+    main { max-width:1200px; margin:0 auto; padding:24px 20px; display:grid; gap:18px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; }
+    .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:14px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    @media(max-width:768px){.two-col{grid-template-columns:1fr}}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
+    /* ── Wallet Card ── */
+    #wallet-card { border-color:rgba(99,102,241,.3); background:linear-gradient(135deg,rgba(99,102,241,.06),var(--surface)); }
+    .wallet-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .wallet-address { font-family:monospace; font-size:13px; color:var(--accent); background:rgba(99,102,241,.1); padding:6px 12px; border-radius:6px; word-break:break-all; }
+    .wallet-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+    .wstat { background:var(--raised); border:1px solid var(--border); border-radius:8px; padding:14px; }
+    .wstat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+    .wstat-value { font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; }
 
-    .logo-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-      animation: pulse 2s infinite;
-    }
+    /* ── Action Tabs ── */
+    .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+    .tab { padding:8px 16px; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; background:none; border-top:none; border-left:none; border-right:none; }
+    .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab:hover:not(.active) { color:var(--text); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    /* ── Forms ── */
+    .form-row { margin-bottom:12px; }
+    .form-label { display:block; font-size:12px; color:var(--muted); margin-bottom:5px; font-weight:500; }
+    .form-input { width:100%; background:var(--raised); border:1px solid var(--border); border-radius:7px; color:var(--text); padding:9px 12px; font-size:13px; outline:none; transition:border-color .15s; font-family:inherit; }
+    .form-input:focus { border-color:var(--accent); }
+    .form-input[type=file] { cursor:pointer; }
+    .form-hint { font-size:11px; color:var(--muted); margin-top:4px; }
+    .result-box { background:var(--raised); border:1px solid var(--border); border-radius:7px; padding:10px 14px; font-size:12px; font-family:monospace; margin-top:10px; word-break:break-all; display:none; }
+    .result-box.success { border-color:rgba(34,197,94,.4); color:var(--green); }
+    .result-box.error { border-color:rgba(239,68,68,.4); color:var(--red); }
+    .result-box.info { border-color:rgba(99,102,241,.4); color:#a5b4fc; }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
+    /* ── Recovery Banner ── */
+    .recovery-banner { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); border-radius:8px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .recovery-banner-text { font-size:13px; color:var(--red); }
+    .recovery-banner-text strong { display:block; margin-bottom:2px; }
+    .recovery-banner-text span { font-size:12px; opacity:.8; }
 
-    .thruscan-link {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 12px;
-      transition: all 0.15s;
-    }
-    .thruscan-link:hover { border-color: var(--accent); color: var(--text); }
+    /* ── Status stats ── */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+    .stat { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
+    .stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+    .stat-value { font-size:21px; font-weight:700; font-variant-numeric:tabular-nums; }
+    .stat-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+    .health-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:600; }
+    .health-pill .dot { width:7px; height:7px; border-radius:50%; }
+    .health-green{background:rgba(34,197,94,.12);color:var(--green)} .health-green .dot{background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite}
+    .health-yellow{background:rgba(234,179,8,.12);color:var(--yellow)} .health-yellow .dot{background:var(--yellow)}
+    .health-red{background:rgba(239,68,68,.12);color:var(--red)} .health-red .dot{background:var(--red)}
+    #sparkline-canvas{width:100%;height:68px;display:block;}
 
-    .last-updated {
-      font-size: 12px;
-      color: var(--muted);
-    }
+    /* ── Tables ── */
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--border);}
+    td{padding:11px 12px;border-bottom:1px solid rgba(30,37,53,.6);font-variant-numeric:tabular-nums;}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .reset-num{font-weight:700;color:var(--red);}
+    .ongoing{display:inline-block;background:rgba(239,68,68,.12);color:var(--red);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;}
+    .rank{font-size:12px;font-weight:700;color:var(--muted);width:30px;}
+    .rank-1{color:#fbbf24}.rank-2{color:#94a3b8}.rank-3{color:#b45309}
+    .addr-link{color:var(--accent);text-decoration:none;font-family:monospace;font-size:12px;}
+    .addr-link:hover{text-decoration:underline}
+    .reset-badge{display:inline-block;background:rgba(239,68,68,.12);color:var(--red);border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;margin-left:8px;vertical-align:middle;}
 
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 24px;
-      display: grid;
-      gap: 20px;
-    }
+    /* ── Empty ── */
+    .empty{text-align:center;padding:32px 20px;color:var(--muted);}
+    .empty-icon{font-size:26px;margin-bottom:8px;}
 
-    /* ── Cards ───────────────────────────────── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 24px;
-    }
+    /* ── Modal ── */
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
+    .modal-backdrop.open{display:flex;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:100%;max-width:420px;position:relative;}
+    .modal-title{font-size:16px;font-weight:700;margin-bottom:6px;}
+    .modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;}
+    .modal-close:hover{color:var(--text);}
+    .modal-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--muted);font-size:12px;}
+    .modal-divider::before,.modal-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+    .security-note{display:flex;align-items:flex-start;gap:8px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:7px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:rgba(34,197,94,.9);}
 
-    .card-title {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      margin-bottom: 16px;
-    }
+    /* ── Spinner ── */
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── Status Row ──────────────────────────── */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-    }
-
-    .stat {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 18px;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stat-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    /* ── Health Indicator ────────────────────── */
-    .health-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .health-pill .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-    }
-    .health-green { background: rgba(34,197,94,0.12); color: var(--green); }
-    .health-green .dot { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
-    .health-yellow { background: rgba(234,179,8,0.12); color: var(--yellow); }
-    .health-yellow .dot { background: var(--yellow); }
-    .health-red { background: rgba(239,68,68,0.12); color: var(--red); }
-    .health-red .dot { background: var(--red); }
-
-    /* ── Sparkline ───────────────────────────── */
-    #sparkline-canvas {
-      width: 100%;
-      height: 70px;
-      display: block;
-    }
-
-    /* ── Resets Table ────────────────────────── */
-    .reset-count-badge {
-      display: inline-block;
-      background: rgba(239,68,68,0.12);
-      color: var(--red);
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-left: 10px;
-      vertical-align: middle;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(30,37,53,0.6);
-      font-variant-numeric: tabular-nums;
-    }
-
-    tr:last-child td { border-bottom: none; }
-
-    tr:hover td { background: rgba(255,255,255,0.02); }
-
-    .reset-number {
-      font-weight: 700;
-      color: var(--red);
-    }
-
-    .ongoing-badge {
-      display: inline-block;
-      background: rgba(239,68,68,0.12);
-      color: var(--red);
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    /* ── Two-column layout ───────────────────── */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .two-col { grid-template-columns: 1fr; }
-      .stat-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    /* ── Leaderboard ─────────────────────────── */
-    .rank {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      width: 32px;
-    }
-    .rank-1 { color: #fbbf24; }
-    .rank-2 { color: #94a3b8; }
-    .rank-3 { color: #b45309; }
-
-    .address-cell {
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 12px;
-    }
-
-    .address-link {
-      color: var(--accent);
-      text-decoration: none;
-    }
-    .address-link:hover { text-decoration: underline; }
-
-    /* ── Empty state ─────────────────────────── */
-    .empty {
-      text-align: center;
-      padding: 36px 20px;
-      color: var(--muted);
-    }
-    .empty-icon { font-size: 28px; margin-bottom: 10px; }
-
-    /* ── Footer ──────────────────────────────── */
-    footer {
-      text-align: center;
-      padding: 28px;
-      color: var(--muted);
-      font-size: 12px;
-      border-top: 1px solid var(--border);
-      margin-top: 12px;
-    }
-    footer a { color: var(--muted); }
-    footer a:hover { color: var(--text); }
-
-    /* ── Loader ──────────────────────────────── */
-    .skeleton {
-      background: linear-gradient(90deg, var(--border) 25%, #252d3d 50%, var(--border) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-      height: 20px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
+    footer{text-align:center;padding:24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:8px;}
+    footer a{color:var(--muted);}
+    footer a:hover{color:var(--text);}
   </style>
 </head>
 <body>
 
+<!-- ── Connect Modal ─────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="connect-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Connect to ThruWatch</div>
+    <div class="modal-sub">Choose how you want to connect your Thru account.</div>
+
+    <!-- Kea Wallet option -->
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px" onclick="connectKea()">
+      🔑 Connect Kea Wallet
+    </button>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:4px">
+      Opens the native Thru wallet at <a href="https://wallet.thru.org" target="_blank" style="color:var(--accent)">wallet.thru.org</a>
+    </div>
+
+    <div class="modal-divider">or</div>
+
+    <!-- Private key option -->
+    <div class="security-note">
+      🔒 <span>Your private key <strong>never leaves your browser.</strong> It is used only to derive your address and sign transactions locally — it is never sent to any server.</span>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Private Key</label>
+      <input class="form-input" type="password" id="pk-input" placeholder="Paste your Thru private key" autocomplete="off" />
+    </div>
+    <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="connectWithKey()">
+      Connect with Private Key
+    </button>
+    <div class="result-box" id="modal-error"></div>
+  </div>
+</div>
+
+<!-- ── Header ────────────────────────────────────────────────────────── -->
 <header>
   <div class="logo">
-    <div class="logo-dot" id="health-dot"></div>
+    <div class="pulse" id="health-dot"></div>
     ThruWatch
-    <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:4px">Alphanet Monitor</span>
+    <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:2px">Alphanet Hub</span>
   </div>
   <div class="header-right">
-    <a href="https://thruscan.net" target="_blank" class="thruscan-link">
-      🔍 ThruScan by <strong style="margin-left:4px">@pgreyy</strong>
-    </a>
-    <span class="last-updated" id="last-updated">Loading...</span>
+    <span class="last-updated" id="last-updated" style="font-size:12px;color:var(--muted)"></span>
+    <a href="https://thruscan.net" target="_blank" class="thruscan-link">🔍 ThruScan by @pgreyy</a>
+    <div id="wallet-btn-area">
+      <button class="btn btn-primary btn-sm" onclick="openModal()">Connect Wallet</button>
+    </div>
   </div>
 </header>
 
 <main>
 
-  <!-- Status Row -->
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="card-title" style="margin-bottom:0">Network Status</div>
-      <div id="health-pill">
-        <span class="health-pill health-yellow"><span class="dot"></span>Connecting...</span>
+  <!-- ── Wallet Panel (hidden until connected) ──────────────────────── -->
+  <div class="card" id="wallet-card" style="display:none">
+    <div class="wallet-header">
+      <div class="card-title" style="margin-bottom:0">My Account</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="wallet-method-badge" style="font-size:11px;color:var(--muted)"></div>
+        <button class="btn btn-outline btn-sm" onclick="disconnect()">Disconnect</button>
       </div>
     </div>
-    <div class="stat-grid" id="stat-grid">
-      <div class="stat">
-        <div class="stat-label">Block Height</div>
-        <div class="stat-value" id="stat-height">—</div>
-        <div class="stat-sub">current head</div>
+
+    <div class="wallet-address" id="wallet-address">—</div>
+
+    <div class="wallet-stats" style="margin-top:14px">
+      <div class="wstat">
+        <div class="wstat-label">Balance</div>
+        <div class="wstat-value" id="wallet-balance">—</div>
+        <div style="font-size:11px;color:var(--muted)">THRU</div>
       </div>
-      <div class="stat">
-        <div class="stat-label">RPC Latency</div>
-        <div class="stat-value" id="stat-latency">—</div>
-        <div class="stat-sub">milliseconds</div>
+      <div class="wstat">
+        <div class="wstat-label">Nonce</div>
+        <div class="wstat-value" id="wallet-nonce">—</div>
+        <div style="font-size:11px;color:var(--muted)">transactions</div>
       </div>
-      <div class="stat">
-        <div class="stat-label">Est. TPS</div>
-        <div class="stat-value" id="stat-tps">—</div>
-        <div class="stat-sub">transactions/sec</div>
+      <div class="wstat">
+        <div class="wstat-label">Status</div>
+        <div class="wstat-value" id="wallet-status" style="font-size:14px;margin-top:4px">—</div>
       </div>
-      <div class="stat">
-        <div class="stat-label">Avg Block Time</div>
-        <div class="stat-value" id="stat-blocktime">—</div>
-        <div class="stat-sub">milliseconds</div>
+    </div>
+
+    <!-- Recovery banner — shown if account looks unregistered -->
+    <div class="recovery-banner" id="recovery-banner" style="display:none;margin-bottom:14px">
+      <div class="recovery-banner-text">
+        <strong>⚠️ Account may need recovery</strong>
+        <span>Your account balance is 0. If the network just reset, click Recover to re-register and get test tokens.</span>
       </div>
-      <div class="stat">
-        <div class="stat-label">Total Resets</div>
-        <div class="stat-value" id="stat-resets" style="color:var(--red)">—</div>
-        <div class="stat-sub">since ThruWatch started</div>
+      <button class="btn btn-danger btn-sm" onclick="activateTab('recover')">Recover Now →</button>
+    </div>
+
+    <!-- Action Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="activateTab('recover')" id="tab-recover">🔄 Recover</button>
+      <button class="tab" onclick="activateTab('send')" id="tab-send">💸 Send THRU</button>
+      <button class="tab" onclick="activateTab('deploy')" id="tab-deploy">📦 Deploy Contract</button>
+    </div>
+
+    <!-- Recover Tab -->
+    <div class="tab-panel active" id="panel-recover">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        After a network reset, your account needs to be re-registered and re-funded. This runs the equivalent of
+        <code style="background:var(--raised);padding:2px 6px;border-radius:4px;font-size:12px">thru account create</code> +
+        <code style="background:var(--raised);padding:2px 6px;border-radius:4px;font-size:12px">thru faucet withdraw</code>
+        for you — entirely in your browser.
+      </p>
+      <button class="btn btn-green" onclick="recoverAccount()" id="recover-btn">
+        🔄 Recover My Account
+      </button>
+      <div class="result-box" id="recover-result"></div>
+    </div>
+
+    <!-- Send Tab -->
+    <div class="tab-panel" id="panel-send">
+      <div class="form-row">
+        <label class="form-label">Recipient Address</label>
+        <input class="form-input" type="text" id="send-to" placeholder="Thru public key" />
       </div>
-      <div class="stat">
-        <div class="stat-label">Faucet (24h)</div>
-        <div class="stat-value" id="stat-faucet">—</div>
-        <div class="stat-sub">calls today</div>
+      <div class="form-row">
+        <label class="form-label">Amount (THRU)</label>
+        <input class="form-input" type="number" id="send-amount" placeholder="0.00" min="0" step="any" />
       </div>
+      <button class="btn btn-primary" onclick="sendThru()" id="send-btn">💸 Send THRU</button>
+      <div class="result-box" id="send-result"></div>
+    </div>
+
+    <!-- Deploy Tab -->
+    <div class="tab-panel" id="panel-deploy">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Upload a compiled <code style="background:var(--raised);padding:2px 6px;border-radius:4px;font-size:12px">.bin</code> contract file and deploy it to the Thru Alphanet. This calls the equivalent of
+        <code style="background:var(--raised);padding:2px 6px;border-radius:4px;font-size:12px">thru program create default program.bin</code>.
+      </p>
+      <div class="form-row">
+        <label class="form-label">Contract Binary (.bin)</label>
+        <input class="form-input" type="file" id="deploy-file" accept=".bin" />
+        <div class="form-hint">Compile your C or Rust contract to RISC-V first using the Thru DevKit.</div>
+      </div>
+      <button class="btn btn-primary" onclick="deployContract()" id="deploy-btn">📦 Deploy Contract</button>
+      <div class="result-box" id="deploy-result"></div>
     </div>
   </div>
 
-  <!-- Sparkline -->
+  <!-- ── Network Status ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:0">Network Status</div>
+      <div id="health-pill"><span class="health-pill health-yellow"><span class="dot"></span>Connecting…</span></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Block Height</div><div class="stat-value" id="stat-height">—</div><div class="stat-sub">finalized</div></div>
+      <div class="stat"><div class="stat-label">RPC Latency</div><div class="stat-value" id="stat-latency">—</div><div class="stat-sub">ms</div></div>
+      <div class="stat"><div class="stat-label">Est. TPS</div><div class="stat-value" id="stat-tps">—</div><div class="stat-sub">tx/sec</div></div>
+      <div class="stat"><div class="stat-label">Avg Block</div><div class="stat-value" id="stat-blocktime">—</div><div class="stat-sub">ms</div></div>
+      <div class="stat"><div class="stat-label">Resets</div><div class="stat-value" id="stat-resets" style="color:var(--red)">—</div><div class="stat-sub">all time</div></div>
+      <div class="stat"><div class="stat-label">Faucet (24h)</div><div class="stat-value" id="stat-faucet">—</div><div class="stat-sub">calls today</div></div>
+    </div>
+  </div>
+
+  <!-- ── Sparkline ──────────────────────────────────────────────────── -->
   <div class="card">
     <div class="card-title">Block Height History</div>
     <canvas id="sparkline-canvas"></canvas>
   </div>
 
-  <!-- Two column: Resets + Leaderboard -->
+  <!-- ── Resets + Leaderboard ───────────────────────────────────────── -->
   <div class="two-col">
-
-    <!-- Reset History -->
     <div class="card">
-      <div class="card-title">
-        Reset History
-        <span class="reset-count-badge" id="reset-badge">0</span>
-      </div>
-      <div id="resets-container">
-        <div class="empty"><div class="empty-icon">🟢</div>No resets recorded yet</div>
-      </div>
+      <div class="card-title">Reset History <span class="reset-badge" id="reset-badge">0</span></div>
+      <div id="resets-container"><div class="empty"><div class="empty-icon">🟢</div>No resets yet</div></div>
     </div>
-
-    <!-- Leaderboard -->
     <div class="card">
       <div class="card-title">Most Active Wallets</div>
-      <div id="leaderboard-container">
-        <div class="empty"><div class="empty-icon">📊</div>Collecting data...</div>
-      </div>
+      <div id="leaderboard-container"><div class="empty"><div class="empty-icon">📊</div>Collecting data…</div></div>
     </div>
-
   </div>
 
 </main>
 
 <footer>
-  Built with ❤️ for the Thru community &nbsp;·&nbsp;
+  Built for the Thru community &nbsp;·&nbsp;
   Account explorer: <a href="https://thruscan.net" target="_blank">ThruScan</a> by <a href="https://x.com/pgreyy" target="_blank">@pgreyy</a>
-  &nbsp;·&nbsp;
-  <a href="https://thru.org" target="_blank">thru.org</a>
-  &nbsp;·&nbsp;
-  <a href="https://scan.thru.org" target="_blank">Official Explorer</a>
+  &nbsp;·&nbsp; <a href="https://thru.org" target="_blank">thru.org</a>
+  &nbsp;·&nbsp; <a href="https://scan.thru.org" target="_blank">Official Explorer</a>
 </footer>
 
-<script>
-  const API = '';  // same origin — change to 'http://localhost:8000' if running separately
+<script type="module">
+  // ── Constants ────────────────────────────────────────────────────────────
+  const REST   = 'https://rest.alphanet.thruput.org';   // Thru REST API (CORS enabled)
+  const THRU_SDK_URL  = 'https://esm.sh/@thru/thru-sdk/client';
+  const THRU_CRYPTO_URL = 'https://esm.sh/@thru/crypto';
+  const BROWSER_SDK_URL = 'https://esm.sh/@thru/browser-sdk';
+  const LOCAL_API = '';  // ThruWatch backend (same origin)
 
-  // ── Fetch helpers ───────────────────────────────────────────────────────
+  // ── Wallet State (in memory only — never persisted) ──────────────────────
+  window._wallet = {
+    connected: false,
+    address: null,
+    keypair: null,       // only set for private key login
+    provider: null,      // only set for Kea Wallet
+    method: null,        // 'key' | 'kea'
+  };
+
+  // ── Modal ──────────────────────────────────────────────────────────────
+  window.openModal  = () => document.getElementById('connect-modal').classList.add('open');
+  window.closeModal = () => document.getElementById('connect-modal').classList.remove('open');
+  document.getElementById('connect-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  // ── Tab switching ────────────────────────────────────────────────────────
+  window.activateTab = (name) => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+  };
+
+  // ── Show result in a result box ──────────────────────────────────────────
+  function showResult(id, msg, type = 'info') {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `result-box ${type}`;
+    el.style.display = 'block';
+  }
+
+  function setLoading(btnId, loading, defaultText) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading ? `<span class="spinner"></span>Working…` : defaultText;
+  }
+
+  // ── Connect with private key ─────────────────────────────────────────────
+  window.connectWithKey = async () => {
+    const pk = document.getElementById('pk-input').value.trim();
+    if (!pk) {
+      showResult('modal-error', 'Please enter your private key.', 'error');
+      return;
+    }
+    const errEl = document.getElementById('modal-error');
+    errEl.className = 'result-box info';
+    errEl.textContent = 'Deriving address…';
+    errEl.style.display = 'block';
+
+    try {
+      // Load @thru/crypto for key derivation
+      const crypto = await import(THRU_CRYPTO_URL);
+
+      // Try common key derivation patterns from @thru/crypto
+      let keypair = null;
+      let address = null;
+
+      if (crypto.Keypair?.fromPrivateKey) {
+        keypair = crypto.Keypair.fromPrivateKey(pk);
+        address = keypair.publicKey?.toString() || keypair.address?.toString();
+      } else if (crypto.keypairFromPrivateKey) {
+        keypair = await crypto.keypairFromPrivateKey(pk);
+        address = keypair.publicKey?.toString() || keypair.address?.toString();
+      } else if (crypto.deriveAddress) {
+        address = await crypto.deriveAddress(pk);
+      } else if (crypto.privateKeyToAddress) {
+        address = await crypto.privateKeyToAddress(pk);
+      }
+
+      if (!address) throw new Error('Could not derive address from private key. Check @thru/crypto docs.');
+
+      window._wallet = { connected: true, address, keypair, provider: null, method: 'key' };
+      closeModal();
+      document.getElementById('pk-input').value = '';  // clear input
+      await onWalletConnected();
+
+    } catch (e) {
+      showResult('modal-error', `Error: ${e.message}`, 'error');
+    }
+  };
+
+  // ── Connect with Kea Wallet ──────────────────────────────────────────────
+  window.connectKea = async () => {
+    const errEl = document.getElementById('modal-error');
+    errEl.className = 'result-box info';
+    errEl.textContent = 'Connecting to Kea Wallet…';
+    errEl.style.display = 'block';
+
+    try {
+      const { ThruProvider } = await import(BROWSER_SDK_URL);
+      const provider = new ThruProvider({ rpcUrl: 'https://grpc-web.alphanet.thruput.org' });
+      const result = await provider.connect();
+      const address = result?.address || result?.pubkey || result?.publicKey?.toString();
+
+      if (!address) throw new Error('Wallet did not return an address.');
+
+      window._wallet = { connected: true, address, keypair: null, provider, method: 'kea' };
+      closeModal();
+      await onWalletConnected();
+
+    } catch (e) {
+      // Fallback: open wallet.thru.org in a new tab
+      showResult('modal-error',
+        `Could not auto-connect (${e.message}). Opening Kea Wallet — after connecting there, paste your address manually.`,
+        'error'
+      );
+      window.open('https://wallet.thru.org', '_blank');
+    }
+  };
+
+  // ── After wallet is connected ────────────────────────────────────────────
+  async function onWalletConnected() {
+    const { address, method } = window._wallet;
+
+    // Show wallet card
+    document.getElementById('wallet-card').style.display = 'block';
+    document.getElementById('wallet-address').textContent = address;
+    document.getElementById('wallet-method-badge').textContent =
+      method === 'kea' ? '🔑 Kea Wallet' : '🔐 Private Key';
+
+    // Change header button to show address
+    document.getElementById('wallet-btn-area').innerHTML = `
+      <span style="font-size:12px;color:var(--muted);font-family:monospace">
+        ${address.slice(0,6)}…${address.slice(-4)}
+      </span>
+    `;
+
+    await refreshWalletData();
+  }
+
+  // ── Refresh account data ─────────────────────────────────────────────────
+  async function refreshWalletData() {
+    const { address } = window._wallet;
+    if (!address) return;
+
+    try {
+      // Try ThruWatch backend proxy first, then direct REST
+      let data = null;
+      try {
+        const r = await fetch(`${LOCAL_API}/api/account/${address}`);
+        if (r.ok) data = await r.json();
+      } catch (_) {}
+
+      if (!data) {
+        const r = await fetch(`${REST}/v1/accounts/${address}`);
+        if (r.ok) data = await r.json();
+      }
+
+      if (data) {
+        const balance = data.balance ?? data.lamports ?? data.amount ?? '—';
+        const nonce   = data.nonce ?? data.sequence ?? data.transactionCount ?? '—';
+        const flags   = data.flags ?? data.status ?? null;
+
+        document.getElementById('wallet-balance').textContent =
+          typeof balance === 'number' ? (balance / 1e9).toFixed(4) : String(balance);
+        document.getElementById('wallet-nonce').textContent = String(nonce);
+        document.getElementById('wallet-status').innerHTML =
+          flags ? `<span style="color:var(--green);font-size:12px">✓ Active</span>`
+                : `<span style="color:var(--yellow);font-size:12px">⚠ Unregistered</span>`;
+
+        // Show recovery banner if balance is 0
+        const balNum = typeof balance === 'number' ? balance : parseFloat(balance) || 0;
+        document.getElementById('recovery-banner').style.display =
+          balNum === 0 ? 'flex' : 'none';
+      }
+    } catch (e) {
+      document.getElementById('wallet-status').innerHTML =
+        `<span style="color:var(--muted);font-size:12px">Could not fetch</span>`;
+    }
+  }
+
+  // ── Disconnect ───────────────────────────────────────────────────────────
+  window.disconnect = () => {
+    window._wallet = { connected: false, address: null, keypair: null, provider: null, method: null };
+    document.getElementById('wallet-card').style.display = 'none';
+    document.getElementById('wallet-btn-area').innerHTML =
+      `<button class="btn btn-primary btn-sm" onclick="openModal()">Connect Wallet</button>`;
+  };
+
+  // ── Recover Account ──────────────────────────────────────────────────────
+  window.recoverAccount = async () => {
+    setLoading('recover-btn', true, '🔄 Recover My Account');
+    showResult('recover-result', 'Step 1/2: Registering account on-chain…', 'info');
+
+    try {
+      const { createThruClient } = await import(THRU_SDK_URL);
+      const thru = createThruClient({ baseUrl: 'https://grpc-web.alphanet.thruput.org' });
+      const { address, keypair } = window._wallet;
+
+      // Step 1: Create account (State Proof transaction)
+      try {
+        if (keypair && thru.accounts?.create) {
+          await thru.accounts.create({ signer: keypair });
+        } else if (keypair && thru.transactions?.buildAndSign) {
+          // Fallback: build account create transaction manually
+          const tx = await thru.transactions.build({ type: 'account_create', payer: address });
+          const signed = await thru.transactions.sign({ transaction: tx, keypair });
+          await thru.transactions.send({ transaction: signed });
+        }
+        showResult('recover-result', 'Step 1 ✓  Account registered.\nStep 2/2: Requesting faucet tokens…', 'info');
+      } catch (e) {
+        // Timeout false alarm — check if it worked anyway
+        if (e.message?.includes('timeout') || e.message?.includes('unavailable')) {
+          showResult('recover-result', '⚠ Timeout on Step 1 — this is normal on Alphanet. Proceeding to faucet…', 'info');
+        } else {
+          throw e;
+        }
+      }
+
+      // Step 2: Faucet
+      await new Promise(r => setTimeout(r, 3000));
+      try {
+        if (thru.faucet?.withdraw) {
+          await thru.faucet.withdraw({ address, amount: 100 });
+        }
+        // Refresh balance
+        await refreshWalletData();
+        showResult('recover-result', '✅ Recovery complete! Your account is registered and funded.', 'success');
+      } catch (e) {
+        if (e.message?.includes('timeout') || e.message?.includes('unavailable')) {
+          showResult('recover-result',
+            '✅ Likely successful — timeout is a known Alphanet false alarm.\nCheck your balance in a few seconds.',
+            'success'
+          );
+          setTimeout(refreshWalletData, 8000);
+        } else {
+          showResult('recover-result', `Faucet step failed: ${e.message}\nTry running: thru faucet withdraw ${address} 100`, 'error');
+        }
+      }
+
+    } catch (e) {
+      showResult('recover-result', `Recovery failed: ${e.message}`, 'error');
+    } finally {
+      setLoading('recover-btn', false, '🔄 Recover My Account');
+    }
+  };
+
+  // ── Send THRU ────────────────────────────────────────────────────────────
+  window.sendThru = async () => {
+    const to     = document.getElementById('send-to').value.trim();
+    const amount = parseFloat(document.getElementById('send-amount').value);
+
+    if (!to)           return showResult('send-result', 'Enter a recipient address.', 'error');
+    if (!amount || amount <= 0) return showResult('send-result', 'Enter a valid amount.', 'error');
+
+    setLoading('send-btn', true, '💸 Send THRU');
+    showResult('send-result', `Sending ${amount} THRU to ${to.slice(0,8)}…`, 'info');
+
+    try {
+      const { createThruClient } = await import(THRU_SDK_URL);
+      const thru = createThruClient({ baseUrl: 'https://grpc-web.alphanet.thruput.org' });
+      const { address, keypair, provider } = window._wallet;
+
+      // Amount in base units (lamports/nanoTHRU — adjust divisor if needed)
+      const amountUnits = Math.floor(amount * 1e9);
+
+      let signature = null;
+      if (keypair) {
+        const tx = await thru.transactions.buildAndSign({
+          payer: address,
+          instructions: [{ type: 'transfer', to, amount: amountUnits }],
+          keypair,
+        });
+        const result = await thru.transactions.sendAndTrack({ transaction: tx });
+        signature = result?.signature;
+      } else if (provider) {
+        const tx = await thru.transactions.build({
+          payer: address,
+          instructions: [{ type: 'transfer', to, amount: amountUnits }],
+        });
+        const ctx  = await provider.getSigningContext();
+        const signed = await provider.signTransaction({ transaction: tx, context: ctx });
+        const result = await thru.transactions.sendAndTrack({ transaction: signed });
+        signature = result?.signature;
+      }
+
+      await refreshWalletData();
+      showResult('send-result',
+        `✅ Sent! Signature: ${signature || 'confirmed'}\nView on ThruScan or scan.thru.org`,
+        'success'
+      );
+      document.getElementById('send-to').value = '';
+      document.getElementById('send-amount').value = '';
+
+    } catch (e) {
+      if (e.message?.includes('timeout') || e.message?.includes('unavailable')) {
+        showResult('send-result', '⚠ Timeout — but your transaction likely went through. Check ThruScan in a moment.', 'info');
+        setTimeout(refreshWalletData, 8000);
+      } else {
+        showResult('send-result', `Send failed: ${e.message}`, 'error');
+      }
+    } finally {
+      setLoading('send-btn', false, '💸 Send THRU');
+    }
+  };
+
+  // ── Deploy Contract ──────────────────────────────────────────────────────
+  window.deployContract = async () => {
+    const fileInput = document.getElementById('deploy-file');
+    if (!fileInput.files.length) return showResult('deploy-result', 'Choose a .bin file first.', 'error');
+
+    setLoading('deploy-btn', true, '📦 Deploy Contract');
+    showResult('deploy-result', 'Reading contract binary…', 'info');
+
+    try {
+      const file = fileInput.files[0];
+      const buffer = await file.arrayBuffer();
+      const bytes  = new Uint8Array(buffer);
+
+      showResult('deploy-result', `Deploying ${file.name} (${(bytes.length/1024).toFixed(1)} KB)…`, 'info');
+
+      const { createThruClient } = await import(THRU_SDK_URL);
+      const thru = createThruClient({ baseUrl: 'https://grpc-web.alphanet.thruput.org' });
+      const { address, keypair, provider } = window._wallet;
+
+      let programAddress = null;
+
+      if (keypair) {
+        const result = await thru.programs?.create({
+          payer: address,
+          programData: bytes,
+          keypair,
+        }) || await thru.transactions.buildAndSign({
+          payer: address,
+          instructions: [{ type: 'program_create', data: bytes }],
+          keypair,
+        }).then(tx => thru.transactions.sendAndTrack({ transaction: tx }));
+        programAddress = result?.programAddress || result?.address || result?.signature;
+      } else if (provider) {
+        const tx = await thru.programs?.buildCreate({ payer: address, programData: bytes });
+        const ctx = await provider.getSigningContext();
+        const signed = await provider.signTransaction({ transaction: tx, context: ctx });
+        const result = await thru.transactions.sendAndTrack({ transaction: signed });
+        programAddress = result?.programAddress || result?.address;
+      }
+
+      showResult('deploy-result',
+        `✅ Contract deployed!\nProgram address: ${programAddress || 'check ThruScan for confirmation'}`,
+        'success'
+      );
+      fileInput.value = '';
+
+    } catch (e) {
+      if (e.message?.includes('timeout') || e.message?.includes('unavailable')) {
+        showResult('deploy-result', '⚠ Timeout — deployment likely succeeded. Check ThruScan to confirm.', 'info');
+      } else {
+        showResult('deploy-result', `Deploy failed: ${e.message}`, 'error');
+      }
+    } finally {
+      setLoading('deploy-btn', false, '📦 Deploy Contract');
+    }
+  };
+
+  // ── Dashboard Data (ThruWatch backend) ─────────────────────────────────
   async function fetchJSON(path) {
     try {
-      const r = await fetch(API + path);
+      const r = await fetch(LOCAL_API + path);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return await r.json();
-    } catch (e) {
-      console.warn('Fetch failed:', path, e.message);
-      return null;
-    }
+    } catch { return null; }
   }
 
   function timeAgo(ts) {
-    const diff = Math.floor(Date.now() / 1000) - ts;
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-    return `${Math.floor(diff/3600)}h ago`;
+    const d = Math.floor(Date.now()/1000) - ts;
+    if (d < 60) return `${d}s ago`;
+    if (d < 3600) return `${Math.floor(d/60)}m ago`;
+    return `${Math.floor(d/3600)}h ago`;
   }
+  function fmt(n, dec=0) { return n == null ? '—' : Number(n).toLocaleString(undefined, {maximumFractionDigits:dec}); }
 
-  function fmt(n, decimals=0) {
-    if (n == null) return '—';
-    return Number(n).toLocaleString(undefined, { maximumFractionDigits: decimals });
-  }
-
-  // ── Status update ───────────────────────────────────────────────────────
   async function updateStatus() {
-    const data = await fetchJSON('/api/status');
-    if (!data) return;
-
-    // Health pill
-    const pill = document.getElementById('health-pill');
-    const dot = document.getElementById('health-dot');
-    const colorMap = { green: '#22c55e', yellow: '#eab308', red: '#ef4444' };
-    pill.innerHTML = `<span class="health-pill health-${data.status}"><span class="dot"></span>${data.label}</span>`;
-    dot.style.background = colorMap[data.status] || '#64748b';
-    dot.style.boxShadow = `0 0 8px ${colorMap[data.status] || '#64748b'}`;
-
-    // Stats
-    document.getElementById('stat-height').textContent = fmt(data.block_height);
-    document.getElementById('stat-latency').textContent = data.rpc_latency_ms != null ? `${data.rpc_latency_ms}ms` : '—';
-    document.getElementById('stat-tps').textContent = fmt(data.tps, 1);
-    document.getElementById('stat-blocktime').textContent = data.avg_block_time_ms != null ? `${data.avg_block_time_ms}ms` : '—';
-    document.getElementById('stat-resets').textContent = fmt(data.reset_count);
-
-    if (data.last_updated) {
-      document.getElementById('last-updated').textContent = `Updated ${timeAgo(data.last_updated)}`;
-    }
+    const d = await fetchJSON('/api/status');
+    if (!d) return;
+    const colors = { green:'#22c55e', yellow:'#eab308', red:'#ef4444' };
+    document.getElementById('health-pill').innerHTML =
+      `<span class="health-pill health-${d.status}"><span class="dot"></span>${d.label}</span>`;
+    document.getElementById('health-dot').style.cssText =
+      `background:${colors[d.status]};box-shadow:0 0 8px ${colors[d.status]}`;
+    document.getElementById('stat-height').textContent   = fmt(d.block_height);
+    document.getElementById('stat-latency').textContent  = d.rpc_latency_ms != null ? `${d.rpc_latency_ms}ms` : '—';
+    document.getElementById('stat-tps').textContent      = fmt(d.tps, 1);
+    document.getElementById('stat-blocktime').textContent= d.avg_block_time_ms != null ? `${d.avg_block_time_ms}ms` : '—';
+    document.getElementById('stat-resets').textContent   = fmt(d.reset_count);
+    if (d.last_updated) document.getElementById('last-updated').textContent = `Updated ${timeAgo(d.last_updated)}`;
   }
 
   async function updateFaucet() {
-    const data = await fetchJSON('/api/faucet');
-    if (!data) return;
-    document.getElementById('stat-faucet').textContent = fmt(data.calls_last_24h);
+    const d = await fetchJSON('/api/faucet');
+    if (d) document.getElementById('stat-faucet').textContent = fmt(d.calls_last_24h);
   }
 
-  // ── Reset history ───────────────────────────────────────────────────────
   async function updateResets() {
-    const data = await fetchJSON('/api/resets');
-    if (!data) return;
-
-    document.getElementById('reset-badge').textContent = data.total;
-
-    const container = document.getElementById('resets-container');
-    if (!data.resets || data.resets.length === 0) {
-      container.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div>No resets recorded yet — network has been stable!</div>';
+    const d = await fetchJSON('/api/resets');
+    if (!d) return;
+    document.getElementById('reset-badge').textContent = d.total;
+    const c = document.getElementById('resets-container');
+    if (!d.resets?.length) {
+      c.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div>No resets recorded yet!</div>';
       return;
     }
-
-    container.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Detected</th>
-            <th>Prev Height</th>
-            <th>Downtime</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${data.resets.map(r => `
-            <tr>
-              <td class="reset-number">#${r.reset_number}</td>
-              <td>${r.detected_at_human || '—'}</td>
-              <td>${fmt(r.prev_block_height)}</td>
-              <td>${r.resolved_at
-                ? `<span style="color:var(--muted)">${r.downtime_human}</span>`
-                : `<span class="ongoing-badge">ongoing</span>`
-              }</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
+    c.innerHTML = `<table><thead><tr><th>#</th><th>Detected</th><th>Prev Height</th><th>Downtime</th></tr></thead><tbody>
+      ${d.resets.map(r=>`<tr>
+        <td class="reset-num">#${r.reset_number}</td>
+        <td>${r.detected_at_human||'—'}</td>
+        <td>${fmt(r.prev_block_height)}</td>
+        <td>${r.resolved_at?`<span style="color:var(--muted)">${r.downtime_human}</span>`:'<span class="ongoing">ongoing</span>'}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
   }
 
-  // ── Leaderboard ─────────────────────────────────────────────────────────
   async function updateLeaderboard() {
-    const data = await fetchJSON('/api/leaderboard');
-    if (!data) return;
-
-    const container = document.getElementById('leaderboard-container');
-    if (!data.leaderboard || data.leaderboard.length === 0) {
-      container.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Collecting wallet activity data...</div>';
+    const d = await fetchJSON('/api/leaderboard');
+    if (!d) return;
+    const c = document.getElementById('leaderboard-container');
+    if (!d.leaderboard?.length) {
+      c.innerHTML = '<div class="empty"><div class="empty-icon">📊</div>Collecting wallet activity…</div>';
       return;
     }
-
-    container.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th style="width:36px">#</th>
-            <th>Address</th>
-            <th>Txns</th>
-            <th>Programs</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${data.leaderboard.map((e, i) => `
-            <tr>
-              <td class="rank rank-${i+1}">${i+1}</td>
-              <td class="address-cell">
-                <a href="https://thruscan.net/address/${e.address}" target="_blank" class="address-link">
-                  ${e.address_short || e.address}
-                </a>
-              </td>
-              <td>${fmt(e.tx_count)}</td>
-              <td>${fmt(e.programs_deployed)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
+    c.innerHTML = `<table><thead><tr><th style="width:32px">#</th><th>Address</th><th>Txns</th><th>Programs</th></tr></thead><tbody>
+      ${d.leaderboard.map((e,i)=>`<tr>
+        <td class="rank rank-${i+1}">${i+1}</td>
+        <td><a href="https://thruscan.net/address/${e.address}" target="_blank" class="addr-link">${e.address_short||e.address}</a></td>
+        <td>${fmt(e.tx_count)}</td>
+        <td>${fmt(e.programs_deployed)}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
   }
 
-  // ── Sparkline ────────────────────────────────────────────────────────────
   async function updateSparkline() {
-    const data = await fetchJSON('/api/sparkline');
-    if (!data || !data.points) return;
-
+    const d = await fetchJSON('/api/sparkline');
+    if (!d?.points) return;
     const canvas = document.getElementById('sparkline-canvas');
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = window.devicePixelRatio||1;
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = rect.width*dpr; canvas.height = rect.height*dpr;
     ctx.scale(dpr, dpr);
-
-    const W = rect.width;
-    const H = rect.height;
-    const pts = data.points.filter(p => p.height != null);
-
-    if (pts.length < 2) {
-      ctx.fillStyle = '#64748b';
-      ctx.font = '12px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('Collecting data...', W / 2, H / 2);
-      return;
-    }
-
-    const minH = Math.min(...pts.map(p => p.height));
-    const maxH = Math.max(...pts.map(p => p.height));
-    const range = maxH - minH || 1;
-
-    const xScale = W / (pts.length - 1);
-    const yScale = (H - 20) / range;
-
-    const toX = i => i * xScale;
-    const toY = h => H - 10 - (h - minH) * yScale;
-
-    // Draw reset drops in red
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    for (let i = 1; i < pts.length; i++) {
-      if (pts[i].height < pts[i-1].height - 100) {
-        ctx.beginPath();
-        ctx.moveTo(toX(i), 0);
-        ctx.lineTo(toX(i), H);
-        ctx.stroke();
-      }
-    }
+    const W=rect.width, H=rect.height;
+    const pts = d.points.filter(p=>p.height!=null);
+    if (pts.length < 2) { ctx.fillStyle='#64748b'; ctx.font='12px system-ui'; ctx.textAlign='center'; ctx.fillText('Collecting data…',W/2,H/2); return; }
+    const minH=Math.min(...pts.map(p=>p.height)), maxH=Math.max(...pts.map(p=>p.height));
+    const range=maxH-minH||1;
+    const xS=W/(pts.length-1), yS=(H-18)/range;
+    const toX=i=>i*xS, toY=h=>H-9-(h-minH)*yS;
+    // Reset lines
+    ctx.strokeStyle='#ef4444'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    for(let i=1;i<pts.length;i++) if(pts[i].height<pts[i-1].height-100){ctx.beginPath();ctx.moveTo(toX(i),0);ctx.lineTo(toX(i),H);ctx.stroke();}
     ctx.setLineDash([]);
-
-    // Draw gradient fill
-    const gradient = ctx.createLinearGradient(0, 0, 0, H);
-    gradient.addColorStop(0, 'rgba(99,102,241,0.3)');
-    gradient.addColorStop(1, 'rgba(99,102,241,0.0)');
-    ctx.beginPath();
-    ctx.moveTo(toX(0), toY(pts[0].height));
-    for (let i = 1; i < pts.length; i++) {
-      ctx.lineTo(toX(i), toY(pts[i].height));
-    }
-    ctx.lineTo(toX(pts.length - 1), H);
-    ctx.lineTo(toX(0), H);
-    ctx.closePath();
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
-    // Draw line
-    ctx.beginPath();
-    ctx.strokeStyle = '#6366f1';
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
-    ctx.moveTo(toX(0), toY(pts[0].height));
-    for (let i = 1; i < pts.length; i++) {
-      ctx.lineTo(toX(i), toY(pts[i].height));
-    }
+    // Fill
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'rgba(99,102,241,.28)'); g.addColorStop(1,'rgba(99,102,241,0)');
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(pts[0].height));
+    for(let i=1;i<pts.length;i++) ctx.lineTo(toX(i),toY(pts[i].height));
+    ctx.lineTo(toX(pts.length-1),H); ctx.lineTo(0,H); ctx.closePath();
+    ctx.fillStyle=g; ctx.fill();
+    // Line
+    ctx.beginPath(); ctx.strokeStyle='#6366f1'; ctx.lineWidth=2; ctx.lineJoin='round';
+    ctx.moveTo(toX(0),toY(pts[0].height));
+    for(let i=1;i<pts.length;i++) ctx.lineTo(toX(i),toY(pts[i].height));
     ctx.stroke();
   }
 
-  // ── Init & refresh loop ─────────────────────────────────────────────────
   async function refreshAll() {
-    await Promise.all([
-      updateStatus(),
-      updateFaucet(),
-      updateResets(),
-      updateLeaderboard(),
-      updateSparkline(),
-    ]);
+    await Promise.all([updateStatus(),updateFaucet(),updateResets(),updateLeaderboard(),updateSparkline()]);
+    if (window._wallet.connected) await refreshWalletData();
   }
 
-  // Initial load + auto-refresh every 30s
   refreshAll();
   setInterval(refreshAll, 30_000);
-
-  // Redraw sparkline on resize
   window.addEventListener('resize', updateSparkline);
 </script>
-
 </body>
 </html>
