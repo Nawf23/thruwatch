@@ -99,14 +99,19 @@ def start(config, no_server, no_recovery):
         # Import the FastAPI app
         from api.server import app
 
-        console.print(f"\n[green]✓ Dashboard available at: http://{cfg.dashboard.host}:{cfg.dashboard.port}[/green]\n")
+        # Railway (and other PaaS) injects a PORT env var — always prefer it
+        import os
+        port = int(os.environ.get("PORT", cfg.dashboard.port))
+        host = "0.0.0.0"  # must bind to all interfaces on Railway
+
+        console.print(f"\n[green]✓ Dashboard available at: http://{host}:{port}[/green]\n")
 
         # Run uvicorn (blocking — this keeps the process alive)
         try:
             uvicorn.run(
                 app,
-                host=cfg.dashboard.host,
-                port=cfg.dashboard.port,
+                host=host,
+                port=port,
                 log_level="warning",  # quiet mode — let ThruWatch handle its own output
             )
         except KeyboardInterrupt:

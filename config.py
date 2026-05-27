@@ -65,14 +65,39 @@ class ThruWatchConfig:
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
 
 
+def _apply_env_overrides(cfg: "ThruWatchConfig") -> "ThruWatchConfig":
+    """
+    Override config values from environment variables.
+    Useful for Railway / Docker deployments where thruwatch.toml isn't present.
+
+    Supported env vars:
+      THRU_ADDRESS          — your Thru public key
+      THRU_DISCORD_WEBHOOK  — Discord webhook URL
+      THRU_FAUCET_AMOUNT    — amount to request from faucet (default 100)
+      THRU_AUTO_RECOVER     — "true" or "false"
+      THRU_POLL_INTERVAL    — polling interval in seconds
+    """
+    import os
+    if os.environ.get("THRU_ADDRESS"):
+        cfg.wallet.address = os.environ["THRU_ADDRESS"]
+    if os.environ.get("THRU_DISCORD_WEBHOOK"):
+        cfg.notifications.discord_webhook = os.environ["THRU_DISCORD_WEBHOOK"]
+    if os.environ.get("THRU_FAUCET_AMOUNT"):
+        cfg.wallet.faucet_amount = int(os.environ["THRU_FAUCET_AMOUNT"])
+    if os.environ.get("THRU_AUTO_RECOVER"):
+        cfg.recovery.auto_recover = os.environ["THRU_AUTO_RECOVER"].lower() == "true"
+    if os.environ.get("THRU_POLL_INTERVAL"):
+        cfg.network.poll_interval = int(os.environ["THRU_POLL_INTERVAL"])
+    return cfg
+
+
 def load_config(path: Optional[Path] = None) -> ThruWatchConfig:
     """Load config from a TOML file. Falls back to defaults if file not found."""
     config_path = path or DEFAULT_CONFIG_PATH
 
     if not config_path.exists():
-        print(f"[ThruWatch] No config file found at '{config_path}'. Using defaults.")
-        print("[ThruWatch] Run `cp thruwatch.toml.example thruwatch.toml` to get started.\n")
-        return ThruWatchConfig()
+        print(f"[ThruWatch] No config file found at '{config_path}'. Using defaults + env vars.")
+        return _apply_env_overrides(ThruWatchConfig())
 
     with open(config_path, "rb") as f:
         raw = tomllib.load(f)
@@ -119,4 +144,4 @@ def load_config(path: Optional[Path] = None) -> ThruWatchConfig:
             host=d.get("host", cfg.dashboard.host),
         )
 
-    return cfg
+    return _apply_env_overrides(cfg)
